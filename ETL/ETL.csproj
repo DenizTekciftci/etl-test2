@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>PP_Capital</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>fca15c5a-8567-4511-8121-baf0278c5349</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.5">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+      <PackageReference Include="Quartz" Version="3.13.0" />
+      <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.0" />
+      <PackageReference Include="Quartz.Jobs" Version="3.13.0" />
+      <PackageReference Include="Sentry" Version="4.10.2" />
+      <PackageReference Include="Sentry.AspNetCore" Version="4.10.2" />
+      <PackageReference Include="Sentry.Extensions.Logging" Version="4.10.2" />
+      <PackageReference Include="Sentry.Serilog" Version="4.10.2" />
+      <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.2" />
+      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.DESKTOP-CIPGDG4.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+    </ItemGroup>
+
+</Project>
