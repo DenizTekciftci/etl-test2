@@ -22,7 +22,7 @@ public static class SchedulerConfiguration
             q.UseInMemoryStore();
             q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 4; });
 
-            // var etlJobKey = new JobKey("ETL Key");
+            var etlJobKey = new JobKey("ETL Key");
             // q.AddJob<ETLJob>(opts => opts.WithIdentity(etlJobKey));
             // q.AddTrigger(opts => opts
             //     .ForJob(etlJobKey)

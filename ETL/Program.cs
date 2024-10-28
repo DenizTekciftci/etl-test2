@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using PP_Capital;
 using Serilog;
 
@@ -26,6 +27,8 @@ configuration.Bind(configSettings);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(configuration)
     .CreateLogger();
+
+Log.Logger.Information(JsonConvert.SerializeObject(configSettings, Formatting.Indented));
 
 Host.CreateDefaultBuilder(args)
     .UseWindowsService()
