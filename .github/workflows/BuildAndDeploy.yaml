@@ -1,0 +1,105 @@
+﻿name: Build, Deploy, and Restart Windows Service
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # This will ensure the job runs on a self-hosted runner (Windows machine)
+    
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      # Step 2: Setup .NET environment (install .NET SDK)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'  # Specify your .NET SDK version
+      
+      # Step 3: Configure service with GitHub secrets (e.g., update config with secrets)
+      - name: Configure Service with Secrets
+        run: |
+          $configFilePath = "ETL/appsettings.json"
+
+          # Load current appsettings.json and update with GitHub secrets
+          $json = Get-Content $configFilePath -Raw | ConvertFrom-Json
+
+          # Update apsettings
+          $bankConfigs =  '${{ vars.BANK_CONFIGS_JSON }}' | ConvertFrom-Json
+          $cronExpressions =  '${{ vars.CRON_EXPRESSIONS }}' | ConvertFrom-Json
+          $thresholds =  '${{ vars.THRESHOLDS }}' | ConvertFrom-Json
+          $pythonPaths =  '${{ vars.PYTHON_PATHS }}' | ConvertFrom-Json
+          $pythonTimeoutMs = ${{ vars.PYTHONTIMEOUTMS }}
+          
+          $json.BankConfigs = $bankConfigs
+          $json.CronExpressions = $cronExpressions
+          $json.Thresholds = $thresholds
+          $json.PythonPaths = $pythonPaths
+          $json.pythonTimeoutMs = $pythonTimeoutMs
+          
+          
+          $json | ConvertTo-Json -Depth 32 | Set-Content $configFilePath
+        shell: powershell
+      
+      # Step 4: Build the C# project
+      - name: Build Project
+        run: |
+          cd
+          dotnet restore PP-Capital.sln
+          dotnet build PP-Capital.sln --configuration Release
+        shell: powershell
+      
+      # Step 5: Stop the existing Windows service if it's running
+      - name: Stop Windows Service
+        run: |
+          $serviceName = "ETL"
+          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
+          }
+        shell: powershell
+      
+      # Step 6: Uninstall Previous Service
+      - name: Uninstall Previous Service
+        run: |
+          $serviceExePath = "C:\source\Consulting\Deployments\deployment\ETL.exe"
+          if (Test-Path $serviceExePath) {
+            & $serviceExePath uninstall
+          }
+        shell: powershell
+      
+      # Step 7: Ensure the service is removed from SCM
+      - name: Remove Service Registration
+        run: |
+          $serviceName = "ETL"
+          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            Remove-Service -Name $serviceName -ErrorAction SilentlyContinue
+          }
+        shell: pwsh
+      
+      # Step 8: Copy the newly built service executable to the deployment folder
+      - name: Copy New Build to Deployment Folder
+        run: |
+          $sourcePath = "ETL\bin\Release\net8.0"
+          $destinationPath = "C:\source\Consulting\C-sharp\Deployments\deployment"
+          Copy-Item -Path "$sourcePath\*" -Destination $destinationPath -Recurse -Force
+        shell: powershell
+      
+      # Step 9: Install the new service
+      - name: Install New Service
+        run: |
+          $servicePath = "C:\source\Consulting\C-sharp\Deployments\deployment"
+          $serviceExe = "ETL.exe"
+          $serviceName = "ETL"
+          New-Service -Name $serviceName -DisplayName $serviceName -Description "ETL service" -StartupType Manual -BinaryPathName "$servicePath\$serviceExe"
+        shell: powershell
+      
+      # Step 10: Start the new service
+      - name: Start Windows Service
+        run: |
+          $serviceName = "ETL"
+          Start-Service -Name $serviceName
+        shell: powershell
